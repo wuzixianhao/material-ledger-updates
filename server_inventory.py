@@ -50,9 +50,18 @@ class ServerInventory:
         missing=[c for c in codes if c not in assets]
         if missing:
             raise ValueError('以下条码未在当前在账记录中找到：'+'、'.join(missing))
-        if any(assets[c]['status']=='借出' for c in codes):
+        return self.assign_server_assets(server,[assets[c]['id'] for c in codes])
+
+    def assign_server_assets(self,server,ids):
+        ids=list(dict.fromkeys(ids))
+        if not ids:
+            raise ValueError('请至少勾选一件物料。')
+        assets={r['id']:r for r in self.assets()}
+        if any(ident not in assets for ident in ids):
+            raise ValueError('有物料不在当前台账，请重新选择。')
+        if any(assets[ident]['status']=='借出' for ident in ids):
             raise ValueError('有物料仍在借出，请先办理收回后再分配。')
-        ids=[assets[c]['id'] for c in codes if assets[c]['location']!=server['location'] or assets[c]['status']!='在用']
+        ids=[ident for ident in ids if assets[ident]['location']!=server['location'] or assets[ident]['status']!='在用']
         if ids:
             self.update(ids,{'location':server['location'],'status':'在用'},'分配到服务器',server['name'])
         return len(ids)

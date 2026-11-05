@@ -202,7 +202,7 @@ class App(ServerUI,OnlineUpdateUI,ColumnFilters,ExcelUI,SuppliesUI,tk.Tk):
         self.log_tab = ttk.Frame(self.tabs, padding=18)
         self.help_tab = ttk.Frame(self.tabs, padding=18)
         pages = ((self.asset_tab, '当前台账', '▦', '掌握每件物料的状态，让每一次流转都有记录。'),
-            (self.server_tab, '服务器管理', '▥', '按服务器查看和登记硬件条码、非挂账物品。'),
+            (self.server_tab, '服务器管理', '▥', '按服务器查看、添加和补录硬件条码。'),
             (self.supply_tab, '非挂账物品', '◇', '记录我持有的物品、使用状态和归还情况。'),
             (self.pending_tab, '批次与补码', '▤', '先记录数量，随时补齐身份信息。'),
             (self.summary_tab, '分类汇总', '◴', '按类别、型号、位置查看当前在账分布。'),
