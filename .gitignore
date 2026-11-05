@@ -1,0 +1,14 @@
+__pycache__/
+.venv/
+.build-output/
+release/
+data/
+.updates/
+online-update-settings.json
+*.sqlite3
+*.sqlite3-*
+*.exe
+*.log
+版本信息.json
+THIRD_PARTY_NOTICES.txt
+ledger.ico
