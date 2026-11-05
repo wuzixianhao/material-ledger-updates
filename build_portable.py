@@ -66,11 +66,12 @@ def main():
             package.write(BASE/name,'MaterialLedger-Windows-x64/'+name)
             manifest['files'][name]=hashlib.sha256((BASE/name).read_bytes()).hexdigest()
         package.writestr('MaterialLedger-Windows-x64/update-manifest.json',json.dumps(manifest,ensure_ascii=False,indent=2))
-    print(json.dumps(dict(archive=str(archive), size_mb=round(archive.stat().st_size/1048576,2)), ensure_ascii=False))
     online=archive.parent/f'MaterialLedger-{VERSION}-Windows-x64.zip'
     shutil.copy2(archive,online)
+    notes=next((p.read_text(encoding='utf-8') for p in (BASE/'RELEASE-NOTES.md',BASE/'public-release-notes.md') if p.is_file()),'')
     (archive.parent/'release.json').write_text(json.dumps(dict(product='material-ledger',platform='windows-x64',version=VERSION,
-        filename=online.name,size=online.stat().st_size,sha256=hashlib.sha256(online.read_bytes()).hexdigest()),indent=2),encoding='utf-8')
+        filename=online.name,size=online.stat().st_size,sha256=hashlib.sha256(online.read_bytes()).hexdigest(),notes=notes[:3000]),indent=2),encoding='utf-8')
+    print(json.dumps(dict(archive=str(archive), size_mb=round(archive.stat().st_size/1048576,2))))
 
 
 if __name__ == '__main__':

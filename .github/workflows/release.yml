@@ -13,6 +13,8 @@ jobs:
   build:
     runs-on: windows-2025
     timeout-minutes: 20
+    env:
+      PYTHONUTF8: '1'
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -23,10 +25,12 @@ jobs:
           architecture: x64
       - name: Test
         run: |
+          $PSNativeCommandUseErrorActionPreference = $true
           python -m pip install -r build-requirements.txt
           python -m unittest -q test_server_inventory test_online_updates test_updater
       - name: Build and verify program-only package
         run: |
+          $PSNativeCommandUseErrorActionPreference = $true
           python build_portable.py
           python verify_public_package.py
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
@@ -43,5 +47,5 @@ jobs:
         run: |
           $metadata = Get-Content release/release.json -Raw | ConvertFrom-Json
           if ($env:GITHUB_REF_NAME -cne "v$($metadata.version)") { throw "Release tag does not match program version" }
-          gh release create $env:GITHUB_REF_NAME "release/$($metadata.filename)" release/release.json --verify-tag --title "物料台账 $($metadata.version)" --notes-file RELEASE-NOTES.md
+          gh release create $env:GITHUB_REF_NAME "release/$($metadata.filename)" release/release.json --verify-tag --latest --title "物料台账 $($metadata.version)" --notes-file RELEASE-NOTES.md
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

@@ -51,24 +51,19 @@ def get_json(url):
 
 def check_release(repository,current_version=VERSION):
     repository=repository_name(repository)
-    release=get_json('https://api.github.com/repos/'+repository+'/releases/latest')
-    if release.get('draft') or release.get('prerelease'):
-        return None
-    version=release.get('tag_name','').removeprefix('v')
-    if version_tuple(version)<=version_tuple(current_version):
-        return None
-    assets={a['name']:a for a in release.get('assets',[]) if a.get('state')=='uploaded'}
-    if 'release.json' not in assets:
-        raise ValueError('该版本尚未上传完整的更新说明和校验文件。')
-    meta=get_json(assets['release.json']['browser_download_url'])
+    releases='https://github.com/'+repository+'/releases'
+    meta=get_json(releases+'/latest/download/release.json')
+    version=meta.get('version','')
+    parsed=version_tuple(version)
     filename=f'MaterialLedger-{version}-Windows-x64.zip'
-    if (meta.get('product')!='material-ledger' or meta.get('platform')!='windows-x64' or meta.get('version')!=version
-            or meta.get('filename')!=filename or filename not in assets
+    if (meta.get('product')!='material-ledger' or meta.get('platform')!='windows-x64'
+            or version!='.'.join(str(n) for n in parsed) or meta.get('filename')!=filename
             or not re.fullmatch('[a-f0-9]{64}',str(meta.get('sha256','')))
-            or type(meta.get('size')) is not int or not 0<meta['size']<=100_000_000
-            or assets[filename].get('size')!=meta['size']):
+            or type(meta.get('size')) is not int or not 0<meta['size']<=100_000_000):
         raise ValueError('在线版本信息或更新包校验信息不完整。')
-    return dict(meta,url=assets[filename]['browser_download_url'],notes=str(release.get('body') or '')[:3000])
+    if parsed<=version_tuple(current_version):
+        return None
+    return dict(meta,url=f'{releases}/download/v{version}/{filename}',notes=str(meta.get('notes') or '')[:3000])
 
 
 def download_release(info,folder,progress=lambda n,total:None):

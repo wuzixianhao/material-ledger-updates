@@ -9,19 +9,17 @@ from online_updates import check_release,download_release,repository_name,save_s
 
 
 class OnlineUpdates(unittest.TestCase):
-    def release(self):
-        return dict(tag_name='v9.0.0',draft=False,prerelease=False,assets=[
-            dict(name='release.json',state='uploaded',browser_download_url='https://github.com/user/app/releases/download/v9.0.0/release.json'),
-            dict(name='MaterialLedger-9.0.0-Windows-x64.zip',state='uploaded',browser_download_url='https://github.com/user/app/releases/download/v9.0.0/app.zip',size=3)])
-
     def test_latest_version_and_metadata(self):
         meta=dict(product='material-ledger',platform='windows-x64',version='9.0.0',filename='MaterialLedger-9.0.0-Windows-x64.zip',size=3,sha256=hashlib.sha256(b'abc').hexdigest())
-        with patch('online_updates.get_json',side_effect=[self.release(),meta]):
-            self.assertEqual(check_release('user/app','2.5.0')['size'],3)
-        with patch('online_updates.get_json',return_value=self.release()):
+        with patch('online_updates.get_json',return_value=meta) as read:
+            result=check_release('user/app','2.5.0')
+            self.assertEqual(result['size'],3)
+            read.assert_called_once_with('https://github.com/user/app/releases/latest/download/release.json')
+            self.assertTrue(result['url'].endswith('/v9.0.0/MaterialLedger-9.0.0-Windows-x64.zip'))
+        with patch('online_updates.get_json',return_value=meta):
             self.assertIsNone(check_release('user/app','9.0.0'))
         meta['sha256']='bad'
-        with patch('online_updates.get_json',side_effect=[self.release(),meta]),self.assertRaises(ValueError):
+        with patch('online_updates.get_json',return_value=meta),self.assertRaises(ValueError):
             check_release('user/app','2.5.0')
 
     def test_download_integrity_and_partial_cleanup(self):
